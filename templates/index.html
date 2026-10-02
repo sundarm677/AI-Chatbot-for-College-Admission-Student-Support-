@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus — AI Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  <style>
+    /* ── Override body for full-height chatbot ── */
+    body {
+      cursor: none;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* ── Background override ── */
+    .bg-scene::before {
+      background: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    /* ── Chat container ── */
+    .chat-wrap {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      width: 96%;
+      max-width: 960px;
+      height: calc(100vh - 100px);
+      margin: 85px auto 15px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s cubic-bezier(.22, 1, .36, 1) both, floatCard 6s ease-in-out infinite 0.6s;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes floatCard {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    /* ── Chat header bar ── */
+    .chat-header {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .bot-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 198, 255, 0.5);
+      animation: pulse 2.2s infinite;
+      object-fit: cover;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 198, 255, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(0, 198, 255, 0);
+      }
+    }
+
+    .bot-name {
+      font-weight: 700;
+      font-size: 16px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .bot-status {
+      font-size: 12px;
+      color: #a7f3d0;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #a7f3d0;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #a7f3d0;
+      margin-right: 6px;
+    }
+
+    .chat-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .lang-select:focus {
+      border-color: #00c6ff;
+    }
+
+    .lang-select option {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .user-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      padding: 5px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.4);
+      text-decoration: none;
+    }
+
+    /* ── Voice bar ── */
+    .voice-bar {
+      display: none;
+      background: linear-gradient(90deg, rgba(0, 242, 254, 0.2), rgba(0, 114, 255, 0.3), rgba(32, 201, 151, 0.2));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 242, 254, 0.5);
+      padding: 8px 20px;
+      font-size: 13px;
+      color: #ffffff;
+      font-weight: 600;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+      text-shadow: 0 0 4px rgba(0, 198, 255, 0.5);
+    }
+
+    .voice-bar.active {
+      display: flex;
+      animation: voicePulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes voicePulse {
+      0% {
+        box-shadow: 0 4px 15px rgba(0, 198, 255, 0.2);
+      }
+
+      100% {
+        box-shadow: 0 4px 25px rgba(0, 198, 255, 0.6), inset 0 0 10px rgba(0, 198, 255, 0.2);
+      }
+    }
+
+    .stop-btn {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      border-radius: 6px;
+      padding: 3px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 198, 255, 0.4);
+      text-shadow: none;
+    }
+
+    .stop-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 18px rgba(0, 198, 255, 0.8);
+    }
+
+    /* ── Messages area ── */
+    .chat-body {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      background: transparent;
+      scroll-behavior: smooth;
+    }
+
+    .chat-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-body::-webkit-scrollbar-thumb {
+      background: rgba(0, 198, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    /* ── Message bubbles ── */
+    .msg {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 18px;
+      animation: msgSlide 0.3s ease;
+    }
+
+    @keyframes msgSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-right {
+      flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+      margin: 0 10px;
+    }
+
+    .bubble {
+      max-width: 520px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.1);
+      /* subtle glow for bot messages */
+      transition: all 0.3s ease;
+      text-align: left;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .nowrap {
+      white-space: nowrap !important;
+      display: inline-block;
+    }
+
+    .msg-right .bubble {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+    }
+
+    .msg-meta {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Bot UI Cards ── */
+    .bot-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      padding: 16px;
+      border-radius: 14px;
+      color: #ffffff;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      animation: fadeUp 0.4s ease;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00e6ff;
+      margin-bottom: 10px;
+    }
+
+    .faculty-list {
+      padding-left: 18px;
+      line-height: 1.6;
+    }
+
+    .faculty-list a {
+      color: #00e6ff;
+      text-decoration: none;
+    }
+
+    .card-footer {
+      margin-top: 12px;
+      color: #cccccc;
+    }
+
+    .card-footer span {
+      color: #00e6ff;
+      font-weight: bold;
+    }
+
+    /* ── Chips (Quick Action Buttons) ── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .chip:hover {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border-color: transparent;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
+    }
+
+    /* ── Typing indicator ── */
+    .typing-dots span {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00c6ff;
+      animation: bounce 0.9s infinite;
+      margin: 0 2px;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    /* ── Quick Actions Bar ── */
+    .quick-actions-bar {
+      padding: 14px 18px 0 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .quick-actions-bar .chips {
+      margin-top: 0;
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      width: 100%;
+      padding-bottom: 14px;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      /* Firefox */
+    }
+
+    .quick-actions-bar .chips::-webkit-scrollbar {
+      display: none;
+      /* Chrome, Safari, Edge */
+    }
+
+    .quick-actions-bar .chip {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* ── Input area ── */
+    .chat-input-area {
+      display: flex;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.08);
+      gap: 12px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .msg-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 25px;
+      padding: 12px 20px;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .msg-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .msg-input:focus {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(0, 198, 255, 0.5);
+      box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
+    }
+
+    .icon-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+    }
+
+    .btn-send:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
+    }
+
+    .btn-voice {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-voice:hover {
+      background: rgba(0, 198, 255, 0.15);
+      color: #00c6ff;
+      border-color: rgba(0, 198, 255, 0.3);
+    }
+
+    .btn-voice.recording {
+      background: rgba(0, 198, 255, 0.2);
+      color: #00c6ff;
+      border-color: rgba(0, 198, 255, 0.4);
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.5
+      }
+    }
+
+    /* Home link chip */
+    .home-chip {
+      position: fixed;
+      top: 86px;
+      left: 20px;
+      z-index: 200;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      animation: fadeUp 0.6s 0.4s both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(-8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .home-chip:hover {
+      color: #fff;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border-color: transparent;
+      text-decoration: none;
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+    }
+
+    @media (max-width: 600px) {
+      .chat-wrap {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        padding: 10px;
+        box-sizing: border-box;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+
+      .bubble {
+        max-width: 95vw;
+        font-size: 14px;
+      }
+
+      .user-chip,
+      .home-chip {
+        display: none;
+      }
+
+      .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00eaff, #007bff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 10px #00eaff;
+      }
+
+      .quick-actions-bar .chips {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        gap: 8px;
+        padding-bottom: 5px;
+      }
+
+      .quick-actions-bar .chip {
+        flex: 1 1 45%;
+        font-size: 13px;
+        padding: 10px;
+        text-align: center;
+      }
+
+      .chat-body {
+        height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+
+      .msg-input {
+        width: 100%;
+        font-size: 16px;
+      }
+    }
+
+    /* ── Placement Link ── */
+    .placement-link {
+      color: #00e6e6;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .placement-link:hover {
+      text-decoration: underline;
+      color: #00ffff;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Transition overlay -->
+  <div id="transition-overlay"></div>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Background -->
+  <div class="bg-scene" id="bgScene"></div>
+  <div class="bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a class="brand" href="/"><span class="brand-dot">🎓</span> Smart Campus</a>
+    <div class="nav-links" style="display: none !important;">
+      <span class="user-chip">👤 <span id="username">{{ name }}</span></span>
+      <a class="nav-link" href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Home chip -->
+  <a class="home-chip" href="/">← Home</a>
+
+  <!-- Main chat container -->
+  <div class="chat-wrap">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <img class="bot-ring" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="bot">
+        <div>
+          <div class="bot-name">🎓 Smart Campus Assistant</div>
+          <div class="bot-status" id="status-txt"><span class="status-dot"></span>Online — AI Powered</div>
+        </div>
+      </div>
+      <div class="chat-header-right">
+        <select class="lang-select" id="lang-sel" onchange="setLang(this.value)" title="Select Language">
+          <option value="en" {% if lang=='en' %}selected{% endif %}>🇬🇧 English</option>
+          <option value="ta" {% if lang=='ta' %}selected{% endif %}>🇮🇳 தமிழ்</option>
+          <option value="hi" {% if lang=='hi' %}selected{% endif %}>🇮🇳 हिंदी</option>
+        </select>
+        <span class="user-chip">👤 <span id="username2">{{ name }}</span></span>
+        <a class="logout-btn" href="/logout">Logout</a>
+      </div>
+    </div>
+
+    <!-- Voice bar -->
+    <div class="voice-bar" id="voice-bar">
+      🎙️ Listening... Speak now
+      <button class="stop-btn" onclick="stopVoice()">Stop</button>
+    </div>
+
+    <!-- Chat messages -->
+    <main class="chat-body" id="chatBox">
+      <div class="msg">
+        <div class="msg-avatar" style="background-image:url('https://cdn-icons-png.flaticon.com/512/4712/4712027.png')">
+        </div>
+        <div class="bubble">
+          <div class="msg-meta"><span>Smart Campus Bot</span></div>
+          <div>👋 Welcome! I'm your Smart Campus AI Assistant.<br><br>How can I help you today?</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-bar">
+      <div class="chips">
+        <button class="chip" onclick="sendQuick('student')">🎓 Student</button>
+        <button class="chip" onclick="sendQuick('faculty')">👨‍🏫 Faculty</button>
+        <button class="chip" onclick="sendQuick('parent')">👨‍👩‍👧 Parent</button>
+        <button class="chip" onclick="sendQuick('visitor')">🏫 Visitor</button>
+        <button class="chip" onclick="sendQuick('admission')">📄 Admission</button>
+        <button class="chip" onclick="sendQuick('courses')">📚 Courses</button>
+        <button class="chip" onclick="sendQuick('fees')">💰 Fees</button>
+        <button class="chip" onclick="send('placement', this.innerText)">💼 Placement</button>
+        <button class="chip" onclick="send('hostel', this.innerText)">🏠 Hostel</button>
+        <button class="chip" onclick="send('contact', this.innerText)">📞 Contact</button>
+        <button class="chip" onclick="sendQuick('transport')">🚍 Transport</button>
+        <button class="chip" onclick="sendQuick('sports')">⚽ Sports</button>
+        <button class="chip" onclick="sendQuick('event')">🎉 Event</button>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <input class="msg-input" id="chatInput" type="text" placeholder="Type your question here..." autocomplete="off">
+      <button class="icon-btn btn-voice" id="voice-btn" onclick="toggleVoice()" title="Voice Input">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <button class="icon-btn btn-send" id="sendBtn" title="Send message">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+
+  </div><!-- /.chat-wrap -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="{{ url_for('static', filename='js/design-system.js') }}"></script>
+  <script>
+    var userNameStr = "{{ name }}" || "User";
+    var BOT_IMG = 'https://cdn-icons-png.flaticon.com/512/4712/4712027.png';
+    var USER_IMG = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userNameStr) + '&background=0D8ABC&color=fff&rounded=true';
+    var chat = document.getElementById('chatBox');
+    var currLang = '{{ lang }}' || 'en';
+    localStorage.setItem("lang", currLang);
+
+    async function translateText(text) {
+      const lang = localStorage.getItem("lang") || "en";
+      if (lang === "en" || !text) return text;
+
+      try {
+        const res = await fetch("https://libretranslate.de/translate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            q: text,
+            source: "en",
+            target: lang,
+            format: "html"
+          })
+        });
+
+        const data = await res.json();
+        if (data && data.translatedText) {
+          return data.translatedText;
+        }
+        return text;
+      } catch (err) {
+        return text; // fallback
+      }
+    }
+
+    async function translateLongText(text) {
+      const parts = text.split("\n");
+      let result = "";
+
+      for (let part of parts) {
+        if (!part.trim()) {
+          result += "\n";
+          continue;
+        }
+        const t = await translateText(part);
+        result += t + "\n";
+      }
+
+      return result;
+    }
+
+    /* ── Send ── */
+    document.getElementById('sendBtn').addEventListener('click', function () {
+      var txt = document.getElementById('chatInput').value.trim();
+      if (!txt) return;
+      doSend(txt);
+      document.getElementById('chatInput').value = '';
+    });
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        var txt = this.value.trim();
+        if (!txt) return;
+        doSend(txt); this.value = '';
+      }
+    });
+
+    function send(txt, displayTxt) { doSend(txt, displayTxt); }
+
+    function checkLogin() {
+      return !isGuest;
+    }
+
+    function goToAdminLogin() { window.location.href = "/admin-login"; }
+    function goToRegister() { window.location.href = "/register"; }
+    function goToForgot() { window.location.href = "/forgot"; }
+
+    function showGuestWarning() {
+      addMsg('System', BOT_IMG, 'left', `
+        <div class="bot-card" style="border: 1px solid #ff4444; background: rgba(255,68,68,0.05);">
+        <h3 class="chat-title" style="color:#ff4444; text-shadow: 0 0 8px #ff4444;">⚠ Please login to continue</h3>
+        <ul style="list-style:none; padding:0; margin-top:10px;">
+        <li style="margin-bottom:8px;">👉 <span class="chat-link" onclick="goToRegister()">Create Account</span></li>
+        <li style="margin-bottom:8px;">👉 <span class="chat-link" onclick="goToForgot()">Forgot Password</span></li>
+        <li>👉 <span class="chat-link" onclick="goToAdminLogin()">Admin Login</span></li>
+        </ul>
+        </div>
+    `);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    const multilingualData = {
+      transport: {
+        msg: { en: "Tell me about transport facilities", ta: "போக்குவரத்து வசதிகள் பற்றி கூறுங்கள்", hi: "परिवहन सुविधाओं के बारे में बताएं" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">🚍 Transport Facilities</h3>\n• The campus offers well-organized transport services covering multiple routes.<br>\n• Ensures safe and convenient travel for students and staff.<br>\n• Buses are scheduled with proper timing for punctual arrival and departure.<br>\n• Regularly monitored for safety, comfort, and reliability.<br><br>\n<a href="https://jec.ac.in/transport/" target="_blank">🚍 Visit Transport Page</a>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">🚍 போக்குவரத்து வசதிகள்</h3>\n• வளாகம் பல வழித்தடங்களை உள்ளடக்கிய நன்கு அமைக்கப்பட்ட போக்குவரத்து சேவைகளை வழங்குகிறது.<br>\n• மாணவர்களுக்கும் ஊழியர்களுக்கும் பாதுகாப்பான மற்றும் வசதியான பயணத்தை உறுதி செய்கிறது.<br>\n• நேரத்திற்கு வந்து செல்வதற்கு ஏற்றவாறு பேருந்துகள் திட்டமிடப்பட்டுள்ளன.<br>\n• பாதுகாப்பு, வசதி மற்றும் நம்பகத்தன்மைக்காக தொடர்ந்து கண்காணிக்கப்படுகிறது.<br><br>\n<a href="https://jec.ac.in/transport/" target="_blank">🚍 போக்குவரத்து பக்கத்தை பார்வையிடவும்</a>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">🚍 परिवहन सुविधाएँ</h3>\n• कैंपस कई मार्गों को कवर करने वाली सुव्यवस्थित परिवहन सेवाएं प्रदान करता है।<br>\n• छात्रों और कर्मचारियों के लिए सुरक्षित और सुविधाजनक यात्रा सुनिश्चित करता है।<br>\n• समय पर आगमन और प्रस्थान के लिए बसें उचित समय के साथ निर्धारित हैं।<br>\n• सुरक्षा, आराम और विश्वसनीयता के लिए नियमित रूप से निगरानी की जाती है।<br><br>\n<a href="https://jec.ac.in/transport/" target="_blank">🚍 परिवहन पृष्ठ पर जाएं</a>\n</div>`
+        }
+      },
+      sports: {
+        msg: { en: "Tell me about sports activities", ta: "விளையாட்டு செயல்பாடுகள் பற்றி கூறுங்கள்", hi: "खेल गतिविधियों के बारे में बताएं" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">⚽ Sports & Activities</h3>\n• Actively promotes sports and extracurricular activities.<br>\n• Wide range of indoor and outdoor sports facilities are available.<br>\n• Encourages participation in games and fitness programs.<br><br>\n<strong>Festivals & Events:</strong><br>\n• Celebrations like Pongal, Christmas, and Ayudha Pooja.<br>\n• Annual day selections and department-level activities.<br><br>\n<strong>Competitions:</strong><br>\n• Students are encouraged to participate in inter-college sports meets.<br><br>\n<a href="https://jec.ac.in/?s=events" target="_blank">🎉 View College Events & Sports</a>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">⚽ விளையாட்டு மற்றும் செயல்பாடுகள்</h3>\n• விளையாட்டு மற்றும் பாடநெறிக்கு அப்பாற்பட்ட செயல்பாடுகளை தீவிரமாக ஊக்குவிக்கிறது.<br>\n• பல்வேறு உள்விளையாட்டு மற்றும் வெளிப்புற விளையாட்டு வசதிகள் உள்ளன.<br>\n• விளையாட்டுகள் மற்றும் உடற்தகுதி திட்டங்களில் பங்கேற்பதை ஊக்குவிக்கிறது.<br><br>\n<strong>பண்டிகைகள் மற்றும் நிகழ்வுகள்:</strong><br>\n• பொங்கல், கிறிஸ்துமஸ் மற்றும் ஆயுத பூஜை போன்ற கொண்டாட்டங்கள்.<br>\n• ஆண்டு விழா தேர்வுகள் மற்றும் துறை அளவிலான செயல்பாடுகள்.<br><br>\n<strong>போட்டிகள்:</strong><br>\n• கல்லூரிகளுக்கு இடையேயான விளையாட்டு போட்டிகளில் பங்கேற்க மாணவர்கள் ஊக்குவிக்கப்படுகிறார்கள்.<br><br>\n<a href="https://jec.ac.in/?s=events" target="_blank">🎉 கல்லூரி நிகழ்வுகள் மற்றும் விளையாட்டுகளைக் காண்க</a>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">⚽ खेल और गतिविधियाँ</h3>\n• खेल और पाठ्येतर गतिविधियों को सक्रिय रूप से बढ़ावा देता है।<br>\n• इनडोर और आउटडोर खेल सुविधाओं की विस्तृत श्रृंखला उपलब्ध है।<br>\n• खेल और फिटनेस कार्यक्रमों में भागीदारी को प्रोत्साहित करता है।<br><br>\n<strong>त्यौहार और कार्यक्रम:</strong><br>\n• पोंगल, क्रिसमस और आयुध पूजा जैसे समारोह।<br>\n• वार्षिक दिवस चयन और विभाग-स्तरीय गतिविधियां।<br><br>\n<strong>प्रतियोगिताएं:</strong><br>\n• छात्रों को अंतर-कॉलेज खेलकूद प्रतियोगिताओं में भाग लेने के लिए प्रोत्साहित किया जाता है।<br><br>\n<a href="https://jec.ac.in/?s=events" target="_blank">🎉 कॉलेज के कार्यक्रम और खेल देखें</a>\n</div>`
+        }
+      },
+      event: {
+        msg: { en: "Show upcoming events", ta: "வரவிருக்கும் நிகழ்வுகளைக் காட்டு", hi: "आगामी कार्यक्रम दिखाएं" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">🎉 College Events & Activities</h3>\n<strong>📌 Recent Events:</strong><br>\n• Graduation Day Event (Banner 1 & 2)<br>\n• Alumni Meet 2024<br><br>\n<strong>🏫 Department Events:</strong><br>\n• Techie Gusto Events – 30-09-2023 (IT Block, 9 AM)<br>\n• Department Events – April 2022<br>\n• Department Events – March 2022<br><br>\n<strong>🏆 Achievements:</strong><br>\n• Mr. Darshan Prasath (CSE) won Gold Medal in National Youth Games 2021 (Boxing, Goa)<br><br>\n<strong>🎊 Festival & Annual Events:</strong><br>\n• Christmas Event – 24-12-2022 (NSS Hall)<br>\n• Pongal Celebration 2022<br>\n• Ayudha Pooja 2021<br>\n• Annual Day Selection<br><br>\n<a href="https://jec.ac.in/?s=event" target="_blank">🌐 View All Events on Website</a>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">🎉 கல்லூரி நிகழ்வுகள் மற்றும் செயல்பாடுகள்</h3>\n<strong>📌 சமீபத்திய நிகழ்வுகள்:</strong><br>\n• பட்டமளிப்பு விழா நிகழ்வு (பேனர் 1 & 2)<br>\n• முன்னாள் மாணவர்கள் சந்திப்பு 2024<br><br>\n<strong>🏫 துறை நிகழ்வுகள்:</strong><br>\n• Techie Gusto நிகழ்வுகள் – 30-09-2023 (ஐடி பிளாக், காலை 9 மணி)<br>\n• துறை நிகழ்வுகள் – ஏப்ரல் 2022<br>\n• துறை நிகழ்வுகள் – மார்ச் 2022<br><br>\n<strong>🏆 சாதனைகள்:</strong><br>\n• திரு. தர்ஷன் பிரசாத் (CSE) 2021 தேசிய இளைஞர் விளையாட்டுப் போட்டியில் தங்கப் பதக்கம் வென்றார் (குத்துச்சண்டை, கோவா)<br><br>\n<strong>🎊 திருவிழா மற்றும் ஆண்டு நிகழ்வுகள்:</strong><br>\n• கிறிஸ்துமஸ் நிகழ்வு – 24-12-2022 (NSS ஹால்)<br>\n• பொங்கல் கொண்டாட்டம் 2022<br>\n• ஆயுத பூஜை 2021<br>\n• ஆண்டு விழா தேர்வு<br><br>\n<a href="https://jec.ac.in/?s=event" target="_blank">🌐 அனைத்து நிகழ்வுகளையும் இணையதளத்தில் காண்க</a>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">🎉 कॉलेज के कार्यक्रम और गतिविधियाँ</h3>\n<strong>📌 हाल के कार्यक्रम:</strong><br>\n• ग्रेजुएशन डे इवेंट (बैनर 1 और 2)<br>\n• पूर्व छात्र मिलन समारोह 2024<br><br>\n<strong>🏫 विभाग के कार्यक्रम:</strong><br>\n• टेकी गस्टो इवेंट्स - 30-09-2023 (आईटी ब्लॉक, सुबह 9 बजे)<br>\n• विभाग के कार्यक्रम - अप्रैल 2022<br>\n• विभाग के कार्यक्रम - मार्च 2022<br><br>\n<strong>🏆 उपलब्धियां:</strong><br>\n• श्री दर्शन प्रसाद (CSE) ने राष्ट्रीय युवा खेल 2021 में स्वर्ण पदक जीता (बॉक्सिंग, गोवा)<br><br>\n<strong>🎊 महोत्सव और वार्षिक कार्यक्रम:</strong><br>\n• क्रिसमस कार्यक्रम - 24-12-2022 (एनएसएस हॉल)<br>\n• पोंगल उत्सव 2022<br>\n• आयुध पूजा 2021<br>\n• वार्षिक दिवस चयन<br><br>\n<a href="https://jec.ac.in/?s=event" target="_blank">🌐 वेबसाइट पर सभी कार्यक्रम देखें</a>\n</div>`
+        }
+      },
+      courses: {
+        msg: { en: "📚 Courses", ta: "📚 படிப்புகள்", hi: "📚 पाठ्यक्रम" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">📚 Courses & Departments</h3>\n<strong>Undergraduate Programs (BE):</strong><br>\n• Aeronautical Engineering<br>\n• Civil Engineering<br>\n• Computer Science and Engineering<br>\n• CSE (Artificial Intelligence and Machine Learning)<br>\n• Computer and Communication Engineering<br>\n• Computer Science and Business Systems<br>\n• Electronics and Communication Engineering<br>\n• Electrical and Electronics Engineering<br>\n• Electronics and Instrumentation Engineering<br>\n• Mechanical Engineering<br>\n• Robotics and Automation<br>\n• Information Technology<br><br>\n<strong>Postgraduate Programs:</strong><br>\n• M.E – VLSI Design<br>\n• MBA – Master of Business Administration<br>\n• MCA – Master of Computer Applications<br><br>\n<strong>Other Departments:</strong><br>\n• Textile Technology<br>\n• Science & Humanities<br><br>\n<a href="https://jec.ac.in/" target="_blank">🔗 View All Courses on Website</a>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">📚 படிப்புகள் மற்றும் துறைகள்</h3>\n<strong>இளங்கலை படிப்புகள் (BE):</strong><br>\n• ஏரோநாட்டிகல் இன்ஜினியரிங்<br>\n• சிவில் இன்ஜினியரிங்<br>\n• கணினி அறிவியல் மற்றும் பொறியியல்<br>\n• CSE (AI மற்றும் இயந்திர கற்றல்)<br>\n• கணினி மற்றும் தொடர்பு பொறியியல்<br>\n• கணினி அறிவியல் மற்றும் வணிக அமைப்புகள்<br>\n• மின்னணுவியல் மற்றும் தொடர்பு பொறியியல்<br>\n• மின் மற்றும் மின்னணு பொறியியல்<br>\n• எலக்ட்ரானிக்ஸ் மற்றும் இன்ஸ்ட்ரூமென்டேஷன் இன்ஜினியரிங்<br>\n• இயந்திர பொறியியல்<br>\n• ரோபாட்டிக்ஸ் மற்றும் ஆட்டோமேஷன்<br>\n• தகவல் தொழில்நுட்பம்<br><br>\n<strong>முதுகலை படிப்புகள்:</strong><br>\n• M.E – VLSI டிசைன்<br>\n• MBA – வணிக நிர்வாக முதுகலை<br>\n• MCA – கணினி பயன்பாடுகள் முதுகலை<br><br>\n<strong>பிற துறைகள்:</strong><br>\n• ஜவுளி தொழில்நுட்பம்<br>\n• அறிவியல் மற்றும் மனிதநேயம்<br><br>\n<a href="https://jec.ac.in/" target="_blank">🔗 அனைத்து படிப்புகளையும் இணையதளத்தில் காண்க</a>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">📚 पाठ्यक्रम और विभाग</h3>\n<strong>स्नातक कार्यक्रम (BE):</strong><br>\n• वैमानिकी इंजीनियरिंग<br>\n• सिविल इंजीनियरिंग<br>\n• कंप्यूटर विज्ञान और इंजीनियरिंग<br>\n• CSE (AI और मशीन लर्निंग)<br>\n• कंप्यूटर और संचार इंजीनियरिंग<br>\n• कंप्यूटर विज्ञान और व्यवसाय प्रणाली<br>\n• इलेक्ट्रॉनिक्स और संचार इंजीनियरिंग<br>\n• इलेक्ट्रिकल और इलेक्ट्रॉनिक्स इंजीनियरिंग<br>\n• इलेक्ट्रॉनिक्स और इंस्ट्रुमेंटेशन इंजीनियरिंग<br>\n• मैकेनिकल इंजीनियरिंग<br>\n• रोबोटिक्स और ऑटोमेशन<br>\n• सूचना प्रौद्योगिकी<br><br>\n<strong>स्नातकोत्तर कार्यक्रम:</strong><br>\n• M.E – VLSI डिजाइन<br>\n• MBA – मास्टर ऑफ बिजनेस एडमिनिस्ट्रेशन<br>\n• MCA – मास्टर ऑफ कंप्यूटर एप्लीकेशन<br><br>\n<strong>अन्य विभाग:</strong><br>\n• कपड़ा प्रौद्योगिकी<br>\n• विज्ञान और मानविकी<br><br>\n<a href="https://jec.ac.in/" target="_blank">🔗 वेबसाइट पर सभी पाठ्यक्रम देखें</a>\n</div>`
+        }
+      },
+      admission: {
+        msg: { en: "📄 Admission Details", ta: "📄 சேர்க்கை விவரங்கள்", hi: "📄 प्रवेश विवरण" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">📄 Admission Details</h3>\n<strong>📌 Admission Process</strong><br>\n• Fill the online application form<br>\n• Upload required documents (10th, 12th mark sheets)<br>\n• Pay application fee <b style="color:#00e6ff;">₹500</b><br>\n• Entrance test or merit-based selection<br>\n• Attend counselling and confirm admission<br><br>\n<strong>📞 Contact Details</strong><br>\n📧 <a href="mailto:admission@jec.ac.in">admission@jec.ac.in</a><br>\n📧 <a href="mailto:info@jec.ac.in">info@jec.ac.in</a><br>\n📧 <a href="mailto:principal@jec.ac.in">principal@jec.ac.in</a><br><br>\n📱 <span class="number">044-26300982</span><br>\n📱 <span class="number">044-26341264</span><br>\n📱 <span class="number">044-26390041</span>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">📄 சேர்க்கை விவரங்கள்</h3>\n<strong>📌 சேர்க்கை செயல்முறை</strong><br>\n• ஆன்லைன் விண்ணப்ப படிவத்தை நிரப்பவும்<br>\n• தேவையான ஆவணங்களை பதிவேற்றவும் (10th, 12th மதிப்பெண் சான்றிதழ்கள்)<br>\n• விண்ணப்ப கட்டணம் <b style="color:#00e6ff;">₹500</b> செலுத்தவும்<br>\n• நுழைவுத் தேர்வு அல்லது தகுதி அடிப்படையிலான தேர்வு<br>\n• கலந்தாய்வில் கலந்து கொண்டு சேர்க்கையை உறுதிப்படுத்தவும்<br><br>\n<strong>📞 தொடர்பு விவரங்கள்</strong><br>\n📧 <a href="mailto:admission@jec.ac.in">admission@jec.ac.in</a><br>\n📧 <a href="mailto:info@jec.ac.in">info@jec.ac.in</a><br>\n📧 <a href="mailto:principal@jec.ac.in">principal@jec.ac.in</a><br><br>\n📱 <span class="number">044-26300982</span><br>\n📱 <span class="number">044-26341264</span><br>\n📱 <span class="number">044-26390041</span>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">📄 प्रवेश विवरण</h3>\n<strong>📌 प्रवेश प्रक्रिया</strong><br>\n• ऑनलाइन आवेदन पत्र भरें<br>\n• आवश्यक दस्तावेज अपलोड करें (10वीं, 12वीं की मार्कशीट)<br>\n• आवेदन शुल्क <b style="color:#00e6ff;">₹500</b> का भुगतान करें<br>\n• प्रवेश परीक्षा या योग्यता आधारित चयन<br>\n• काउंसलिंग में भाग लें और प्रवेश की पुष्टि करें<br><br>\n<strong>📞 संपर्क विवरण</strong><br>\n📧 <a href="mailto:admission@jec.ac.in">admission@jec.ac.in</a><br>\n📧 <a href="mailto:info@jec.ac.in">info@jec.ac.in</a><br>\n📧 <a href="mailto:principal@jec.ac.in">principal@jec.ac.in</a><br><br>\n📱 <span class="number">044-26300982</span><br>\n📱 <span class="number">044-26341264</span><br>\n📱 <span class="number">044-26390041</span>\n</div>`
+        }
+      },
+      fees: {
+        msg: { en: "💰 Fees & Structure", ta: "💰 கட்டண விவரங்கள்", hi: "💰 शुल्क संरचना" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">💰 Fee Structure (Per Year)</h3>\n<strong>🎓 Undergraduate Programs (B.E.):</strong><br>\n• ₹85,000 – ₹1,10,000 depending on the department<br><br>\n<strong>🎓 Postgraduate Programs:</strong><br>\n• M.E.: ₹60,000 per year<br>\n• MBA: ₹70,000 per year<br><br>\n<strong>💳 Payment Options:</strong><br>\n• Online Payment (UPI / Debit / Credit Card)<br>\n• Demand Draft (DD)<br>\n• Net Banking facilities available<br><br>\n<strong>📅 Installment Facility:</strong><br>\n• Fees can be paid in 2 installments per academic year<br>\n• Flexible payment support is available based on student needs<br><br>\n<strong>🏦 Scholarships & Financial Support:</strong><br>\n• Merit-based scholarships for top-performing students<br>\n• Government scholarships for SC / ST / OBC categories<br>\n• Financial assistance schemes for economically weaker sections<br>\n• Special concessions for outstanding achievements in academics and sports<br><br>\n📌 <i>Note: Fee structure may vary slightly based on university norms and regulations.</i><br>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">💰 கட்டண விவரங்கள் (வருடத்திற்கு)</h3>\n<strong>🎓 இளங்கலை படிப்புகள் (B.E.):</strong><br>\n• ₹85,000 – ₹1,10,000 துறையை பொறுத்து மாறுபடும்<br><br>\n<strong>🎓 முதுகலை படிப்புகள்:</strong><br>\n• M.E.: வருடத்திற்கு ₹60,000<br>\n• MBA: வருடத்திற்கு ₹70,000<br><br>\n<strong>💳 கட்டணம் செலுத்தும் முறைகள்:</strong><br>\n• ஆன்லைன் கட்டணம் (UPI / டெபிட் / கிரெடிட் கார்டு)<br>\n• வரைவோலை (DD)<br>\n• இணைய வங்கி வசதிகள் உள்ளன<br><br>\n<strong>📅 தவணை வசதி:</strong><br>\n• கல்விக் கட்டணத்தை ஒரு கல்வியாண்டிற்கு 2 தவணைகளில் செலுத்தலாம்<br>\n• மாணவர்களின் தேவைகளின் அடிப்படையில் நெகிழ்வான கட்டண ஆதரவு கிடைக்கும்<br><br>\n<strong>🏦 உதவித்தொகை மற்றும் நிதி ஆதரவு:</strong><br>\n• சிறப்பாக செயல்படும் மாணவர்களுக்கான தகுதி அடிப்படையிலான உதவித்தொகை<br>\n• SC / ST / OBC பிரிவினருக்கான அரசு உதவித்தொகை<br>\n• பொருளாதாரத்தில் நலிவடைந்த பிரிவினருக்கான நிதி உதவி திட்டங்கள்<br>\n• கல்வியாளர்கள் மற்றும் விளையாட்டுகளில் சிறப்பான சாதனைகளுக்கான சிறப்பு சலுகைகள்<br><br>\n📌 <i>குறிப்பு: பல்கலைக்கழக விதிமுறைகள் மற்றும் விதிமுறைகளின் அடிப்படையில் கட்டண அமைப்பு சற்று மாறுபடலாம்.</i><br><br>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">💰 शुल्क संरचना (प्रति वर्ष)</h3>\n<strong>🎓 स्नातक कार्यक्रम (B.E.):</strong><br>\n• ₹85,000 – ₹1,10,000 विभाग के आधार पर<br><br>\n<strong>🎓 स्नातकोत्तर कार्यक्रम:</strong><br>\n• M.E.: ₹60,000 प्रति वर्ष<br>\n• MBA: ₹70,000 प्रति वर्ष<br><br>\n<strong>💳 भुगतान विकल्प:</strong><br>\n• ऑनलाइन भुगतान (UPI / डेबिट / क्रेडिट कार्ड)<br>\n• डिमांड ड्राफ्ट (DD)<br>\n• नेट बैंकिंग सुविधाएं उपलब्ध हैं<br><br>\n<strong>📅 किस्त सुविधा:</strong><br>\n• शुल्क प्रति शैक्षणिक वर्ष 2 किस्तों में भुगतान किया जा सकता है<br>\n• छात्रों की जरूरतों के आधार पर लचीला भुगतान समर्थन उपलब्ध है<br><br>\n<strong>🏦 छात्रवृत्ति और वित्तीय सहायता:</strong><br>\n• शीर्ष प्रदर्शन करने वाले छात्रों के लिए योग्यता आधारित छात्रवृत्ति<br>\n• SC / ST / OBC श्रेणियों के लिए सरकारी छात्रवृत्ति<br>\n• आर्थिक रूप से कमजोर वर्गों के लिए वित्तीय सहायता योजनाएं<br>\n• शिक्षाविदों और खेलों में उत्कृष्ट उपलब्धियों के लिए विशेष रियायतें<br><br>\n📌 <i>नोट: विश्वविद्यालय के मानदंडों और नियमों के आधार पर शुल्क संरचना थोड़ी भिन्न हो सकती है।</i><br>\n</div>`
+        }
+      },
+      faculty: {
+        msg: { en: "👨‍🏫 Faculty Directory", ta: "👨‍🏫 ஆசிரியர் அடைவு", hi: "👨‍🏫 फैकल्टी डायरेक्टरी" },
+        res: {
+          en: `<div class="bot-card">\n<h3 class="chat-title">👨‍🏫 Faculty Directory</h3>\n<ul class="faculty-list">\n<li><b>CSE HOD:</b> Dr. R. Suresh — \n<a href="mailto:csehod@jec.ac.in">csehod@jec.ac.in</a></li>\n<li><b>ECE HOD:</b> Dr. P. Meena — \n<a href="mailto:ecehod@jec.ac.in">ecehod@jec.ac.in</a></li>\n<li><b>MECH HOD:</b> Dr. K. Rajan — \n<a href="mailto:mechhod@jec.ac.in">mechhod@jec.ac.in</a></li>\n<li><b>CIVIL HOD:</b> Dr. S. Priya — \n<a href="mailto:civilhod@jec.ac.in">civilhod@jec.ac.in</a></li>\n</ul>\n<div class="card-footer">\nTotal: <span>120+</span> faculty | PhD holders: <span>45%</span>\n</div>\n</div>`,
+          ta: `<div class="bot-card">\n<h3 class="chat-title">👨‍🏫 ஆசிரியர் அடைவு</h3>\n<ul class="faculty-list">\n<li><b>CSE தலைவர்:</b> டாக்டர் ஆர். சுரேஷ் — \n<a href="mailto:csehod@jec.ac.in">csehod@jec.ac.in</a></li>\n<li><b>ECE தலைவர்:</b> டாக்டர் பி. மீனா — \n<a href="mailto:ecehod@jec.ac.in">ecehod@jec.ac.in</a></li>\n<li><b>MECH தலைவர்:</b> டாக்டர் கே. ராஜன் — \n<a href="mailto:mechhod@jec.ac.in">mechhod@jec.ac.in</a></li>\n<li><b>சிவில் தலைவர்:</b> டாக்டர் எஸ். பிரியா — \n<a href="mailto:civilhod@jec.ac.in">civilhod@jec.ac.in</a></li>\n</ul>\n<div class="card-footer">\nமொத்தம்: <span>120+</span> ஆசிரியர்கள் | PhD: <span>45%</span>\n</div>\n</div>`,
+          hi: `<div class="bot-card">\n<h3 class="chat-title">👨‍🏫 फैकल्टी डायरेक्टरी</h3>\n<ul class="faculty-list">\n<li><b>CSE प्रमुख:</b> डॉ. आर. सुरेश — \n<a href="mailto:csehod@jec.ac.in">csehod@jec.ac.in</a></li>\n<li><b>ECE प्रमुख:</b> डॉ. पी. मीना — \n<a href="mailto:ecehod@jec.ac.in">ecehod@jec.ac.in</a></li>\n<li><b>MECH प्रमुख:</b> डॉ. के. राजन — \n<a href="mailto:mechhod@jec.ac.in">mechhod@jec.ac.in</a></li>\n<li><b>सिविल प्रमुख:</b> डॉ. एस. प्रिया — \n<a href="mailto:civilhod@jec.ac.in">civilhod@jec.ac.in</a></li>\n</ul>\n<div class="card-footer">\nकुल: <span>120+</span> फैकल्टी | PhD: <span>45%</span>\n</div>\n</div>`
+        }
+      }
+    };
+
+    const fallbackResponses = {
+      en: `
+🎓 Please ask about:
+• Admissions
+• Courses
+• Hostel
+• Transport
+• Placements
+• Sports
+• Faculty
+• Campus Facilities
+`,
+      ta: `
+🎓 தயவுசெய்து கீழ்க்கண்டவற்றைப் பற்றி கேளுங்கள்:
+• சேர்க்கை
+• படிப்புகள்
+• விடுதி
+• போக்குவரத்து
+• வேலைவாய்ப்பு
+• விளையாட்டு
+• ஆசிரியர்கள்
+• கல்லூரி வசதிகள்
+`,
+      hi: `
+🎓 कृपया निम्न विषयों के बारे में पूछें:
+• प्रवेश
+• पाठ्यक्रम
+• हॉस्टल
+• परिवहन
+• प्लेसमेंट
+• खेल
+• फैकल्टी
+• कॉलेज सुविधाएं
+`
+    };
+
+    function sendQuick(type, customUserMessage = null) {
+      if (!checkLogin()) {
+        showGuestWarning();
+        return;
+      }
+
+      const lang = localStorage.getItem("lang") || "en";
+      let message = type;
+      let customResponse = "";
+
+      if (multilingualData[type]) {
+        message = multilingualData[type].msg[lang] || multilingualData[type].msg['en'];
+        customResponse = multilingualData[type].res[lang] || multilingualData[type].res['en'];
+      } else {
+        // Fallback to backend if type not in manual dictionary
+        document.getElementById("chatInput").value = type;
+        document.getElementById("sendBtn").click();
+        return;
+      }
+
+      let finalMessage = customUserMessage !== null ? customUserMessage : message;
+
+      addMsg('You', USER_IMG, 'right', finalMessage);
+      showTyping();
+
+      setTimeout(() => {
+        removeTyping();
+        addMsg('Smart Campus Bot', BOT_IMG, 'left', customResponse);
+      }, 800);
+    }
+
+    function doSend(txt, displayTxt, retryCount = 0) {
+      if (!checkLogin()) {
+        showGuestWarning();
+        return;
+      }
+      var lowerTxt = txt.toLowerCase();
+
+      const intents = {
+        event: ["event", "events", "fest", "function", "activities", "celebration"],
+        transport: ["bus", "transport", "route", "travel", "pickup"],
+        sports: ["sports", "games", "match", "playground"],
+        courses: ["course", "courses", "department", "branch", "program"],
+        admission: ["admission", "apply", "join", "enroll", "process"],
+        fees: ["fee", "fees", "cost", "payment", "scholarship", "structure"],
+        faculty: ["faculty", "staff", "teacher", "hod", "prof", "professor", "directory"]
+      };
+
+      let detectedIntent = null;
+      for (let intent in intents) {
+        for (let word of intents[intent]) {
+          if (lowerTxt.includes(word)) {
+            detectedIntent = intent;
+            break;
+          }
+        }
+        if (detectedIntent) break;
+      }
+
+      if (detectedIntent) {
+        sendQuick(detectedIntent, txt);
+        return;
+      }
+
+      var showTxt = displayTxt || txt;
+      if (retryCount === 0) {
+        translateText(showTxt).then(translated => {
+          addMsg('You', USER_IMG, 'right', translated);
+        });
+        showTyping();
+      }
+
+      $.ajax({
+        url: '/chat',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ message: txt, lang: currLang }),
+        success: function (data) {
+          const fallbackStr = "Please enter a valid option like 1, 1.1, 2.3, etc.";
+          const lang = localStorage.getItem("lang") || "en";
+
+          if (data && data.response) {
+            if (data.response === fallbackStr) {
+              removeTyping();
+              addMsg('Smart Campus Bot', BOT_IMG, 'left', fallbackResponses[lang] || fallbackResponses['en']);
+            } else {
+              translateLongText(data.response).then(translated => {
+                removeTyping();
+                addMsg('Smart Campus Bot', BOT_IMG, 'left', translated);
+              });
+            }
+          } else if (typeof data === 'string') {
+            if (data === fallbackStr) {
+              removeTyping();
+              addMsg('Smart Campus Bot', BOT_IMG, 'left', fallbackResponses[lang] || fallbackResponses['en']);
+            } else {
+              translateLongText(data).then(translated => {
+                removeTyping();
+                addMsg('Smart Campus Bot', BOT_IMG, 'left', translated);
+              });
+            }
+          } else {
+            removeTyping();
+            addMsg('Smart Campus Bot', BOT_IMG, 'left', '⚠️ Invalid response format.');
+          }
+        },
+        error: function (xhr, status, error) {
+          if (retryCount < 1) {
+            // Retry once after 1 second
+            setTimeout(function () {
+              doSend(txt, displayTxt, retryCount + 1);
+            }, 1000);
+          } else {
+            console.error("Backend connection error:", error, xhr.responseText);
+            translateText('⚠️ Could not reach server. Please try again.').then(translated => {
+              removeTyping();
+              addMsg('System', BOT_IMG, 'left', translated);
+            });
+          }
+        }
+      });
+    }
+
+    function animateBotMessage(container) {
+      const lines = container.innerHTML.split("<br>");
+      container.innerHTML = "";
+
+      lines.forEach((line, index) => {
+        const div = document.createElement("div");
+        div.innerHTML = line;
+        div.classList.add("typing-line");
+
+        div.style.animationDelay = `${index * 0.2}s`;
+        container.appendChild(div);
+      });
+    }
+
+    function formatResponse(text) {
+      if (text.includes("bot-card") || text.includes("<div style=")) {
+        return text;
+      }
+
+      let formatted = text
+        .replace(/\n/g, "<br>")
+        .replace(/•/g, "<br>• ")
+        .replace(/Open:/gi, "<br><strong>Timings:</strong>")
+        .replace(/Issue:/gi, "<br><strong>Issue:</strong>")
+        .replace(/E-library/gi, "<br><strong>E-Library:</strong>")
+        .replace(/Timings:/gi, "<br><strong>Timings:</strong>")
+        .replace(/Facilities:/gi, "<br><strong>Facilities:</strong>")
+        .replace(/Contact:/gi, "<br><strong>Contact:</strong>");
+
+      // Auto-fix phone numbers missing '044-' prefix and wrap with span to prevent line breaking
+      formatted = formatted.replace(/(?:044-)?\b(263\d{5})\b/g, '<span class="number">044-$1</span>');
+
+      formatted = formatted.replace(/(<br>\s*){3,}/g, "<br><br>");
+
+      let lines = formatted.split("<br>").filter(line => line.trim() !== "");
+      if (lines.length > 0 && !lines[0].includes("•") && !lines[0].includes("<")) {
+        lines[0] = `<h3 class="chat-title">${lines[0].trim()}</h3>`;
+      }
+
+      return `<div class="bot-card">\n${lines.join("<br>")}\n</div>`;
+    }
+
+    function addMsg(name, img, side, text) {
+      var t = new Date();
+      var hm = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+
+      var avatarHtml = '';
+      if (side === 'right') {
+        avatarHtml = '<div class="user-avatar"><img src="' + img + '" alt="User"></div>';
+      } else {
+        avatarHtml = '<div class="msg-avatar" style="background-image:url(\'' + img + '\')"></div>';
+      }
+
+      var html = '<div class="msg' + (side === 'right' ? ' msg-right' : '') + '">' +
+        avatarHtml +
+        '<div class="bubble">' +
+        '<div class="msg-meta"><span>' + name + '</span><span>' + hm + '</span></div>' +
+        '<div class="msg-content"></div>' +
+        '</div></div>';
+
+      chat.insertAdjacentHTML('beforeend', html);
+      chat.scrollTop = chat.scrollHeight;
+
+      var contentDiv = chat.lastElementChild.querySelector('.msg-content');
+
+      // Apply typing animation only for bot messages (left side)
+      if (side === 'left') {
+        contentDiv.innerHTML = formatResponse(text);
+        animateBotMessage(contentDiv);
+      } else {
+        contentDiv.innerHTML = text;
+      }
+    }
+
+    function showTyping() {
+      chat.insertAdjacentHTML('beforeend',
+        '<div class="msg" id="typing">' +
+        '<div class="msg-avatar" style="background-image:url(\'' + BOT_IMG + '\')"></div>' +
+        '<div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>' +
+        '</div>');
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function removeTyping() { var t = document.getElementById('typing'); if (t) t.remove(); }
+
+    /* ── Language ── */
+    function setLang(lang) {
+      currLang = lang;
+      localStorage.setItem("lang", lang);
+      fetch('/set_lang', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang: lang })
+      });
+      var labels = { en: '🌐 Language set to English', ta: '🌐 மொழி தமிழுக்கு மாற்றப்பட்டது', hi: '🌐 भाषा हिंदी में बदली गई' };
+      translateText('Language updated').then(translated => {
+        addMsg('System', BOT_IMG, 'left', labels[lang] || translated);
+      });
+    }
+
+    /* ── Voice ── */
+    var recognition = null;
+    var isRecording = false;
+
+    function toggleVoice() {
+      if (isRecording) { stopVoice(); return; }
+      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        addMsg('System', BOT_IMG, 'left', '⚠️ Voice input not supported in this browser. Please use Chrome or Edge.');
+        return;
+      }
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      var langMap = { en: 'en-IN', ta: 'ta-IN', hi: 'hi-IN' };
+      recognition.lang = langMap[currLang] || 'en-IN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = function () {
+        isRecording = true;
+        document.getElementById('voice-btn').classList.add('recording');
+        document.getElementById('voice-bar').classList.add('active');
+        document.getElementById('status-txt').innerHTML = '<span class="status-dot" style="background:#ef4444;box-shadow:0 0 6px #ef4444"></span>🎙️ Listening...';
+      };
+      recognition.onresult = function (e) {
+        var t = e.results[0][0].transcript;
+        document.getElementById('chatInput').value = t;
+        doSend(t);
+        document.getElementById('chatInput').value = '';
+      };
+      recognition.onerror = function (e) {
+        addMsg('System', BOT_IMG, 'left', '⚠️ Voice error: ' + e.error + '. Try typing instead.');
+      };
+      recognition.onend = function () { stopVoice(); };
+      recognition.start();
+    }
+
+    function stopVoice() {
+      isRecording = false;
+      if (recognition) try { recognition.stop(); } catch (e) { }
+      document.getElementById('voice-btn').classList.remove('recording');
+      document.getElementById('voice-bar').classList.remove('active');
+      document.getElementById('status-txt').innerHTML = '<span class="status-dot"></span>Online — AI Powered';
+    }
+
+    const isGuest = {{ isGuest | tojson }};
+    console.log("Guest Mode:", isGuest);
+
+    if (isGuest) {
+      document.getElementById("username").innerText = "Guest User";
+      document.getElementById("username2").innerText = "Guest User";
+
+      document.getElementById("chatInput").disabled = true;
+      document.getElementById("sendBtn").disabled = true;
+
+      // Hide logout button for guest
+      let logoutBtn = document.querySelector('.logout-btn');
+      if (logoutBtn) logoutBtn.style.display = "none";
+
+      document.getElementById("chatBox").innerHTML += `
+        <p id="guestWarning" style="text-align:center; color:#ff4444; font-weight:bold; margin-top:15px;">
+        ⚠ Please login to access chatbot features.
+        </p>
+    `;
+    } else {
+      document.getElementById("chatInput").disabled = false;
+      document.getElementById("sendBtn").disabled = false;
+
+      // REMOVE WARNING MESSAGE
+      document.getElementById("guestWarning")?.remove();
+    }
+  </script>
+</body>
+
+</html>

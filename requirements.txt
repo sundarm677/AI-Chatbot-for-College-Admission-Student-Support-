@@ -1,0 +1,26 @@
+# Smart Campus AI Chatbot v3 — requirements
+# Install: pip install -r requirements.txt
+
+# Core Flask
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Response compression — reduces payload for mobile networks (optional but recommended)
+flask-compress==1.14
+
+# NLP — scikit-learn TF-IDF + Naive-Bayes
+scikit-learn==1.3.0
+numpy==1.24.3
+
+# NLTK — stopwords, stemming, tokenisation
+nltk==3.8.1
+
+# spaCy — lemmatisation, NER (en_core_web_sm model needed)
+# After install run: python -m spacy download en_core_web_sm
+spacy==3.7.2
+
+# Google Translate — multilingual support
+googletrans==4.0.0rc1
+
+# (Optional) bcrypt — alternative password hashing
+# bcrypt==4.0.1

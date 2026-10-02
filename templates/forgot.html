@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Campus — Reset Password</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+<style>
+.auth-title { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.auth-sub   { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+.link-row { margin-top: 14px; font-size: 13px; color: var(--text-sub); text-align: center; }
+.link-row a { color: var(--blue-cyan); text-decoration: none; font-weight: 600; }
+
+/* OTP input */
+.otp-input {
+  letter-spacing: 12px; font-size: 24px; font-weight: 700;
+  text-align: center; font-family: 'Poppins', monospace;
+}
+
+/* Timer */
+.timer-row {
+  font-size: 12px; color: var(--warning);
+  text-align: center; margin-bottom: 12px;
+}
+
+/* Resend btn */
+.resend-btn {
+  background: none; border: none; font-family: 'Poppins', sans-serif;
+  color: var(--text-accent); font-size: 13px; cursor: pointer;
+  text-decoration: underline; padding: 0;
+  transition: color 0.2s;
+}
+.resend-btn:hover { color: var(--blue-cyan); }
+
+/* ── Background override ── */
+.bg-scene::before {
+  background: rgba(0,0,0,0.6) !important;
+}
+
+/* ── Container override ── */
+.auth-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-logo">🎓 Smart<span>Campus</span></div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- Transition overlay -->
+<div id="transition-overlay"></div>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Background -->
+<div class="bg-scene" id="bgScene"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="brand" href="/"><span class="brand-dot">🎓</span> Smart Campus</a>
+  <div class="nav-links">
+    <a class="nav-link" href="/login">Login</a>
+    <a class="nav-link" href="/register">Register</a>
+  </div>
+</nav>
+
+<!-- Auth layout -->
+<div class="auth-layout">
+  <div class="sc-card auth-card fade-up">
+    <div class="shimmer"></div>
+    <img class="bot-avatar" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="bot">
+
+    <!-- Step indicator -->
+    <div class="steps">
+      <div class="step {% if not step or step == 'email' %}active{% elif step in ['verify','reset'] %}done{% endif %}">
+        {% if step in ['verify','reset'] %}✓{% else %}1{% endif %}
+      </div>
+      <div class="step-line {% if step in ['verify','reset'] %}done{% endif %}"></div>
+      <div class="step {% if step == 'verify' %}active{% elif step == 'reset' %}done{% endif %}">
+        {% if step == 'reset' %}✓{% else %}2{% endif %}
+      </div>
+      <div class="step-line {% if step == 'reset' %}done{% endif %}"></div>
+      <div class="step {% if step == 'reset' %}active{% endif %}">3</div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}
+        <div class="flash {% if 'OTP' in m or 'sent' in m or 'DEV' in m %}flash-info{% elif 'success' in m.lower() %}flash-success{% else %}flash-error{% endif %}">
+          {% if 'OTP' in m or 'sent' in m or 'DEV' in m %}📧{% elif 'success' in m.lower() %}✅{% else %}⚠️{% endif %} {{ m }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- STEP 1: Enter Email -->
+    {% if not step or step == 'email' %}
+    <div class="auth-title">Forgot Password</div>
+    <p class="auth-sub">Enter your registered email address</p>
+    <form action="/forgot/send_otp" method="POST" style="text-align:left">
+      <input class="sc-input" type="email" name="email" placeholder="Registered Email Address" required autofocus>
+      <button class="sc-btn" type="submit">📧 Send OTP →</button>
+    </form>
+    <div class="link-row"><a href="/login">← Back to Login</a></div>
+
+    <!-- STEP 2: Verify OTP -->
+    {% elif step == 'verify' %}
+    <div class="auth-title">Enter OTP</div>
+    <p class="auth-sub">6-digit code sent to <strong style="color:#f8fafc">{{ email }}</strong></p>
+    <form action="/forgot/verify_otp" method="POST" style="text-align:left">
+      <input type="hidden" name="email" value="{{ email }}">
+      <input class="sc-input otp-input" type="text" name="otp"
+             placeholder="••••••" maxlength="6" pattern="\d{6}" required autofocus>
+      <div class="timer-row">⏰ OTP valid for: <span id="countdown">10:00</span></div>
+      <button class="sc-btn" type="submit">✅ Verify OTP →</button>
+    </form>
+    <div class="link-row" style="margin-top:12px">
+      <form action="/forgot/send_otp" method="POST" style="display:inline">
+        <input type="hidden" name="email" value="{{ email }}">
+        <button class="resend-btn" type="submit">🔄 Resend OTP</button>
+      </form>
+    </div>
+
+    <!-- STEP 3: Reset Password -->
+    {% elif step == 'reset' %}
+    <div class="auth-title">Set New Password</div>
+    <p class="auth-sub">OTP verified ✅ Choose a strong new password</p>
+    <form action="/forgot/reset_password" method="POST" style="text-align:left">
+      <input type="hidden" name="email" value="{{ email }}">
+      <div class="pw-box">
+        <input id="pw" class="sc-input" type="password" name="upassword"
+               placeholder="New Password (min 8 chars)" pattern=".{8,}" required>
+        <button type="button" class="eye-btn" onclick="togglePw()">👁</button>
+      </div>
+      <div class="strength-bar" id="strBar" style="width:0;background:transparent;margin-top:-10px;margin-bottom:10px;"></div>
+      <button class="sc-btn" type="submit">🔐 Reset Password</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="sc-footer">
+  <div>🎓 <strong>Smart Campus</strong> · AI Platform</div>
+  <div>© 2025 Smart Campus. All rights reserved.</div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/design-system.js') }}"></script>
+<script>
+/* OTP countdown timer */
+var countdown = document.getElementById('countdown');
+if (countdown) {
+  var secs = 600;
+  var timer = setInterval(function() {
+    secs--;
+    var m = Math.floor(secs / 60), s = secs % 60;
+    countdown.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if (secs <= 0) { clearInterval(timer); countdown.textContent = 'Expired'; countdown.style.color = '#f87171'; }
+  }, 1000);
+}
+
+/* Password toggle */
+function togglePw() {
+  var pw = document.getElementById('pw');
+  if (pw) pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+
+/* Password strength on reset step */
+var pwInput = document.getElementById('pw');
+if (pwInput) {
+  pwInput.addEventListener('input', function() {
+    var v = this.value;
+    var bar = document.getElementById('strBar');
+    if (!bar) return;
+    var strong = v.match(/[A-Z]/) && v.match(/[0-9]/) && v.length >= 8;
+    var medium = (v.match(/[A-Z]/) || v.match(/[0-9]/)) && v.length >= 6;
+    if (strong)       { bar.className = 'strength-bar strength-strong'; }
+    else if (medium)  { bar.className = 'strength-bar strength-medium'; }
+    else if (v.length){ bar.className = 'strength-bar strength-weak'; }
+    else              { bar.className = 'strength-bar'; bar.style.width='0'; }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Campus AI — Welcome</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+<style>
+/* ── HERO ── */
+.hero {
+  position: relative; z-index: 10;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 100px 24px 60px;
+}
+.hero-avatar {
+  width: 110px; margin-bottom: 28px;
+  filter: drop-shadow(0 8px 32px rgba(255,255,255,0.5));
+  animation: avatarFloat 3.5s ease-in-out infinite, fadeUp 0.8s 0.2s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes avatarFloat {
+  0%,100% { transform: translateY(0) rotate(-1deg); }
+  50%     { transform: translateY(-14px) rotate(1deg); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(36px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 30px; padding: 6px 16px; font-size: 12px;
+  font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
+  margin-bottom: 24px;
+  animation: fadeUp 0.8s 0.3s cubic-bezier(.22,1,.36,1) both;
+  box-shadow: 0 0 12px rgba(0, 198, 255, 0.15);
+}
+.badge-text {
+  background: linear-gradient(90deg, #00ffff, #0072ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 4px rgba(0, 198, 255, 0.6));
+  animation: textPulse 2.5s ease-in-out infinite;
+}
+@keyframes textPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(0, 198, 255, 0.6)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(0, 198, 255, 0.9)); }
+}
+.badge-dot {
+  width: 6px; height: 6px; background: #00ffff;
+  border-radius: 50%; animation: blink 1.4s infinite;
+  box-shadow: 0 0 8px #00ffff;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.hero-h1 {
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  font-weight: 900; line-height: 1.12; color: #fff;
+  letter-spacing: -1px; margin-bottom: 18px;
+  animation: fadeUp 0.8s 0.4s cubic-bezier(.22,1,.36,1) both;
+}
+.hero-sub {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--text-accent); font-weight: 400; max-width: 560px;
+  line-height: 1.7; margin-bottom: 48px;
+  animation: fadeUp 0.8s 0.5s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── NAV CARDS ── */
+.cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  width: 100%; max-width: 960px; margin: 0 auto;
+  animation: fadeUp 0.8s 0.6s cubic-bezier(.22,1,.36,1) both;
+}
+.nav-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 32px 24px 28px;
+  text-decoration: none; color: inherit;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  overflow: hidden; cursor: none;
+  transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease, border-color 0.35s ease;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px;
+  will-change: transform;
+}
+.nav-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.12) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+.nav-card:hover::before { opacity: 1; }
+.nav-card:hover {
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.2), 0 0 40px rgba(255,255,255,0.15);
+  text-decoration: none; color: inherit;
+}
+.card-shimmer {
+  position: absolute; top:0; left:-100%; width:60%; height:100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: skewX(-20deg); transition: left 0.55s ease; pointer-events: none;
+}
+.nav-card:hover .card-shimmer { left: 140%; }
+.card-icon-wrap {
+  width: 68px; height: 68px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  transition: transform 0.35s cubic-bezier(.22,1,.36,1);
+}
+.nav-card:hover .card-icon-wrap { transform: scale(1.12) rotate(-4deg); }
+.card-icon-wrap.blue  { background:linear-gradient(135deg,rgba(200,200,200,.25),rgba(255,255,255,.15)); border:1px solid rgba(255,255,255,.3); box-shadow:0 8px 24px rgba(255,255,255,0.2); }
+.card-icon-wrap.green { background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(52,211,153,.15)); border:1px solid rgba(52,211,153,.3); box-shadow:0 8px 24px rgba(52,211,153,0.2); }
+.card-icon-wrap.amber { background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(251,191,36,.15)); border:1px solid rgba(251,191,36,.3); box-shadow:0 8px 24px rgba(251,191,36,0.2); }
+.card-icon-wrap.purple{ background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(167,139,250,.15)); border:1px solid rgba(167,139,250,.3); box-shadow:0 8px 24px rgba(167,139,250,0.2); }
+.card-title { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.3; }
+.card-desc  { font-size: 12.5px; color: var(--text-sub); line-height: 1.6; }
+.card-arrow {
+  margin-top: 8px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.4px;
+  opacity: 0.6; transition: opacity 0.2s, gap 0.2s;
+}
+.nav-card:hover .card-arrow { opacity: 1; gap: 9px; }
+.card-arrow.blue   { color: var(--blue-cyan); }
+.card-arrow.green  { color: #34d399; }
+.card-arrow.amber  { color: #fbbf24; }
+.card-arrow.purple { color: #a78bfa; }
+
+/* ── Stats ── */
+.stats-strip {
+  position: relative; z-index: 10;
+  display: flex; justify-content: center;
+  flex-wrap: wrap; max-width: 800px; margin: 56px auto 0;
+  animation: fadeUp 0.8s 0.8s cubic-bezier(.22,1,.36,1) both;
+}
+.stat-item {
+  flex: 1; min-width: 140px; text-align: center;
+  padding: 24px 20px; border-right: 1px solid var(--border);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-size: 2rem; font-weight: 800; line-height: 1;
+  background: linear-gradient(90deg, var(--blue-cyan), #60a5fa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 6px; }
+
+/* ── Features ── */
+.section {
+  position: relative; z-index: 10;
+  max-width: 1100px; margin: 80px auto 0; padding: 0 24px 80px;
+}
+.section-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.section-sub   { text-align: center; font-size: 14px; color: var(--text-sub); margin-bottom: 48px; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.feat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 26px 24px;
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  opacity: 0; transform: translateY(30px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.feat-card.visible {
+  opacity: 1; transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.feat-card:hover {
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 24px rgba(255,255,255,0.08);
+  transform: translateY(-4px);
+}
+.feat-icon  { font-size: 28px; margin-bottom: 14px; }
+.feat-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.feat-text  { font-size: 13px; color: var(--text-sub); line-height: 1.7; }
+
+/* ── CTA ── */
+.cta-banner {
+  position: relative; z-index: 10;
+  margin: 0 24px 80px; border-radius: 24px;
+  background: linear-gradient(135deg, rgba(200,200,200,0.3), rgba(255,255,255,0.15));
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 52px 40px; text-align: center; overflow: hidden;
+  backdrop-filter: blur(12px);
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.cta-banner.visible { opacity:1; transform: translateY(0); }
+.cta-banner::before {
+  content:''; position: absolute; top:-80px; left:50%; width:300px; height:300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  transform: translateX(-50%); animation: orbFloat 8s ease-in-out infinite alternate;
+}
+@keyframes orbFloat { from{transform:translateX(-50%) scale(1)} to{transform:translateX(-50%) scale(1.1) translateY(20px)} }
+.cta-title { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.cta-sub   { font-size: 15px; color: var(--text-accent); margin-bottom: 32px; }
+.cta-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(45deg, var(--blue-cyan), var(--blue-deep));
+  color: #fff; font-size: 15px; font-weight: 700;
+  padding: 14px 36px; border-radius: 50px; border: none; cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(255,255,255,0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  letter-spacing: 0.3px;
+}
+.cta-btn:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 14px 44px rgba(255,255,255,0.55);
+  color: #fff; text-decoration: none;
+}
+
+/* ── Scroll hint ── */
+.scroll-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--text-sub); font-size: 11px; letter-spacing: 0.5px;
+  animation: fadeUp 1s 1.2s both; z-index: 10;
+}
+.scroll-line {
+  width: 1.5px; height: 40px;
+  background: linear-gradient(to bottom, var(--blue-cyan), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%,100%{ opacity:0.4; transform:scaleY(0.6); transform-origin: top; }
+  50%    { opacity:1;   transform:scaleY(1);   transform-origin: top; }
+}
+
+@media (max-width: 768px) {
+  .cards-row { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stat-item { min-width: 100px; padding: 18px 12px; }
+  .hero-h1 { font-size: 2rem; }
+  .cta-title { font-size: 1.5rem; }
+}
+@media (max-width: 480px) {
+  .cards-row { grid-template-columns: 1fr; }
+  .nav-card { padding: 24px 18px 20px; }
+}
+
+/* ── Background override ── */
+.bg-scene::before {
+  background: rgba(0,0,0,0.6) !important;
+}
+
+/* ── Container overrides ── */
+.nav-card, .feat-card, .cta-banner {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-logo">🎓 Smart<span>Campus</span></div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div style="font-size:12px;color:var(--text-sub);letter-spacing:0.5px">AI Powered Campus Platform</div>
+</div>
+
+<!-- Transition overlay -->
+<div id="transition-overlay"></div>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Background -->
+<div class="bg-scene" id="bgScene"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Anti-gravity floating elements -->
+<div class="float-elements">
+  <div class="float-el" style="top:18%;left:5%;--ag-dur:6s;--ag-del:0s;--ag-y:-20px;--ag-rot0:-2deg;--ag-rot1:2deg">
+    <div class="fe-dot"></div> AI Powered
+  </div>
+  <div class="float-el" style="top:30%;right:4%;--ag-dur:7s;--ag-del:1s;--ag-y:-28px;--ag-rot0:1deg;--ag-rot1:-3deg">
+    <div class="fe-dot" style="background:#34d399;box-shadow:0 0 6px #34d399"></div> 1200+ Students
+  </div>
+  <div class="float-el" style="top:60%;left:3%;--ag-dur:8s;--ag-del:2s;--ag-y:-16px;--ag-rot0:3deg;--ag-rot1:-1deg">
+    <div class="fe-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div> 24/7 Support
+  </div>
+  <div class="float-el" style="bottom:22%;right:5%;--ag-dur:6.5s;--ag-del:0.5s;--ag-y:-22px;--ag-rot0:-3deg;--ag-rot1:1deg">
+    <div class="fe-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div> Multi-Language
+  </div>
+  <div class="float-el" style="top:75%;left:8%;--ag-dur:9s;--ag-del:1.5s;--ag-y:-18px;--ag-rot0:2deg;--ag-rot1:-2deg">
+    <div class="fe-dot" style="background:#f472b6;box-shadow:0 0 6px #f472b6"></div> Secure & Fast
+  </div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="brand" href="/"><span class="brand-dot">🎓</span> Smart Campus</a>
+  <div class="nav-links">
+    <a class="nav-link" href="/login">Login</a>
+    <a class="nav-link" href="/register">Sign Up</a>
+    <a class="nav-link" href="/chatbot">AI Chatbot</a>
+    <a class="nav-link nav-cta" href="/login">Get Started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <img class="hero-avatar" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="AI Bot">
+
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    <span class="badge-text">AI-Powered Campus Assistant · Live</span>
+  </div>
+
+  <h1 class="hero-h1">
+    Welcome to<br>
+    <span class="gradient-text">Smart Campus</span><br>
+    AI Assistant
+  </h1>
+
+  <p class="hero-sub">
+    Your intelligent companion for admissions, academics, student services,
+    and campus life — powered by cutting-edge AI.
+  </p>
+
+  <!-- Navigation cards -->
+  <div class="cards-row" id="cardsRow">
+    <a class="nav-card sc-card-tilt" href="/login" data-dest="/login">
+      <div class="card-shimmer"></div>
+      <div class="card-icon-wrap blue">🔐</div>
+      <div class="card-title">Login / Sign Up</div>
+      <div class="card-desc">Access your personal campus account securely.</div>
+      <div class="card-arrow blue">Enter Portal <span>→</span></div>
+    </a>
+
+    <a class="nav-card sc-card-tilt" href="/chatbot" data-dest="/chatbot">
+      <div class="card-shimmer"></div>
+      <div class="card-icon-wrap green">🤖</div>
+      <div class="card-title">AI Chatbot</div>
+      <div class="card-desc">Chat with our intelligent assistant anytime, in any language.</div>
+      <div class="card-arrow green">Start Chat <span>→</span></div>
+    </a>
+
+    <a class="nav-card sc-card-tilt" href="/chatbot" data-dest="/chatbot">
+      <div class="card-shimmer"></div>
+      <div class="card-icon-wrap amber">🎓</div>
+      <div class="card-title">Student Services</div>
+      <div class="card-desc">Admissions, fees, hostel, placement and more.</div>
+      <div class="card-arrow amber">Explore <span>→</span></div>
+    </a>
+
+    <a class="nav-card sc-card-tilt" href="/admin-login" data-dest="/admin-login">
+      <div class="card-shimmer"></div>
+      <div class="card-icon-wrap purple">⚙️</div>
+      <div class="card-title">Admin Panel</div>
+      <div class="card-desc">Manage users, analytics, and system settings.</div>
+      <div class="card-arrow purple">Dashboard <span>→</span></div>
+    </a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-strip" id="statsStrip">
+  <div class="stat-item">
+    <div class="stat-num" data-target="1200" data-suffix="+">0</div>
+    <div class="stat-label">Active Students</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="50000" data-suffix="+">0</div>
+    <div class="stat-label">Queries Answered</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="3" data-suffix="">0</div>
+    <div class="stat-label">Languages Supported</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="99" data-suffix="%">0</div>
+    <div class="stat-label">% Uptime</div>
+  </div>
+</div>
+
+<!-- Features -->
+<section class="section">
+  <h2 class="section-title">Everything You Need</h2>
+  <p class="section-sub">One unified AI platform for the entire campus ecosystem</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🌐</div>
+      <div class="feat-title">Multi-Language Support</div>
+      <div class="feat-text">Communicate seamlessly in English, Tamil, and Hindi. The AI understands and responds in your preferred language.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Instant Answers</div>
+      <div class="feat-text">Get immediate responses to queries about admissions, fees, courses, hostel, placement and campus events.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎙️</div>
+      <div class="feat-title">Voice Input</div>
+      <div class="feat-text">Speak naturally to the chatbot. Voice recognition in English, Tamil and Hindi makes it truly accessible.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Admin Analytics</div>
+      <div class="feat-text">Real-time dashboards for administrators to track user activity, query trends, and language usage.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">Secure Authentication</div>
+      <div class="feat-text">OTP-verified sign-up, encrypted sessions, and role-based access control keep your data safe.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">Fully Responsive</div>
+      <div class="feat-text">Works flawlessly on desktop, tablet, and mobile. Access campus info on the go, anytime.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Banner -->
+<div class="cta-banner" id="ctaBanner" style="max-width:1100px;margin:0 auto 80px;">
+  <div class="cta-title">Ready to Get Started?</div>
+  <p class="cta-sub">Join thousands of students using Smart Campus AI every day.</p>
+  <button type="button" class="cta-btn" onclick="window.location.href='/chatbot'">🚀 Launch the Assistant</button>
+</div>
+
+<!-- Footer -->
+<footer class="sc-footer">
+  <div>🎓 <strong>Smart Campus</strong> · AI Powered Platform</div>
+  <div style="display:flex;gap:20px">
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <a href="/chatbot">Chatbot</a>
+    <a href="/admin">Admin</a>
+  </div>
+  <div>© 2025 Smart Campus. All rights reserved.</div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/design-system.js') }}"></script>
+<script>
+/* ── Card mouse tracking for radial glow ── */
+document.querySelectorAll('.nav-card').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var r = card.getBoundingClientRect();
+    var x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+    var y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+  });
+});
+
+/* ── Scroll-triggered feature cards ── */
+var featObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry, i) {
+    if (entry.isIntersecting) {
+      setTimeout(function() {
+        entry.target.classList.add('visible');
+      }, (entry.target.dataset.i || 0) * 100);
+      featObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.feat-card').forEach(function(el, i) {
+  el.dataset.i = i;
+  featObs.observe(el);
+});
+
+/* ── CTA banner scroll trigger ── */
+var ctaObs = new IntersectionObserver(function(entries) {
+  if (entries[0].isIntersecting) {
+    entries[0].target.classList.add('visible');
+    ctaObs.disconnect();
+  }
+}, { threshold: 0.2 });
+var cta = document.getElementById('ctaBanner');
+if (cta) ctaObs.observe(cta);
+</script>
+</body>
+</html>

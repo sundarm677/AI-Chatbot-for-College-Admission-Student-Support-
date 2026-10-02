@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus — Admin Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  <style>
+    .auth-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .auth-sub {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+    }
+
+    /* ── Background override ── */
+    .bg-scene::before {
+      background: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    /* ── Login container override ── */
+    .auth-card {
+      background: rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 40px rgba(167, 139, 250, 0.1) !important;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="loader-logo">🎓 Smart<span>Campus</span></div>
+    <div class="loader-bar">
+      <div class="loader-fill"></div>
+    </div>
+  </div>
+
+  <!-- Transition overlay -->
+  <div id="transition-overlay"></div>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Background -->
+  <div class="bg-scene" id="bgScene"></div>
+  <div class="bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a class="brand" href="/"><span class="brand-dot">🎓</span> Smart Campus</a>
+    <div class="nav-links">
+      <a class="nav-link" href="/login">User Login</a>
+    </div>
+  </nav>
+
+  <!-- Auth layout -->
+  <div class="auth-layout">
+    <div class="sc-card auth-card fade-up">
+      <div class="shimmer"></div>
+      <div style="font-size: 40px; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.3);">⚙️</div>
+      <div class="auth-title">Admin Portal</div>
+      <p class="auth-sub">Secure System Access</p>
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      {% for m in messages %}
+      <div class="flash flash-error"
+        style="border-left-color: #ef4444; background: rgba(239,68,68,0.1); color: #fca5a5;">⚠️ {{ m }}</div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      <form action="/admin-login" method="POST" style="text-align:left">
+        <input class="sc-input" type="text" name="username" placeholder="Admin Username" required
+          autocomplete="username">
+        <div class="pw-box">
+          <input id="pw" class="sc-input" type="password" name="password" placeholder="Admin Password" required>
+          <button type="button" class="eye-btn" onclick="togglePw()" title="Show/hide password">👁</button>
+        </div>
+        <button class="sc-btn" type="submit" style="background: linear-gradient(45deg, #8b5cf6, #d946ef);">🔐
+          Authenticate Admin</button>
+      </form>
+
+      <div
+        style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sub);text-align:center;">
+        Return to <a href="/" style="color:#a78bfa;text-decoration:none">Home Page</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="sc-footer">
+    <div>🎓 <strong>Smart Campus</strong> · AI Platform</div>
+    <div>© 2025 Smart Campus. All rights reserved.</div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/design-system.js') }}"></script>
+  <script>
+    function togglePw() {
+      var pw = document.getElementById('pw');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    }
+  </script>
+</body>
+
+</html>

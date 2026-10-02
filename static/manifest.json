@@ -1,0 +1,8 @@
+{
+  "name": "Smart Campus Chatbot",
+  "short_name": "CampusBot",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#00e5ff"
+}

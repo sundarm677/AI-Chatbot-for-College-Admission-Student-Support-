@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=5" type="image/png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Campus — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+<style>
+.auth-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.auth-sub   { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+.link-row { margin-top: 14px; font-size: 13px; color: var(--text-sub); text-align: center; }
+.link-row a { color: var(--blue-cyan); text-decoration: none; font-weight: 600; }
+.link-row a:hover { text-decoration: underline; }
+
+/* Perks row */
+.perks {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.perk {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-sub); font-weight: 500;
+}
+.perk-dot { width:6px;height:6px;border-radius:50%;background:var(--blue-cyan); }
+
+/* ── Background override ── */
+.bg-scene::before {
+  background: rgba(0,0,0,0.6) !important;
+}
+
+/* ── Container override ── */
+.auth-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-logo">🎓 Smart<span>Campus</span></div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- Transition overlay -->
+<div id="transition-overlay"></div>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Background -->
+<div class="bg-scene" id="bgScene"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="brand" href="/"><span class="brand-dot">🎓</span> Smart Campus</a>
+  <div class="nav-links">
+    <a class="nav-link" href="/login">Login</a>
+    <a class="nav-link nav-cta" href="/login">Sign In →</a>
+  </div>
+</nav>
+
+<!-- Auth layout -->
+<div class="auth-layout" style="padding-top:100px;padding-bottom:60px;">
+  <div class="sc-card auth-card fade-up" style="max-width:440px;">
+    <div class="shimmer"></div>
+    <img class="bot-avatar" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="bot">
+    <div class="auth-title">Create Account</div>
+    <p class="auth-sub">Join Smart Campus today</p>
+
+    <!-- Perks -->
+    <div class="perks">
+      <div class="perk"><div class="perk-dot"></div> Free access</div>
+      <div class="perk"><div class="perk-dot" style="background:#34d399"></div> AI-powered</div>
+      <div class="perk"><div class="perk-dot" style="background:#fbbf24"></div> Multi-language</div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}
+        <div class="flash flash-info">ℹ️ {{ m }}</div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form action="/add_user" method="POST" style="text-align:left">
+      <input class="sc-input" type="text" name="name" placeholder="Full Name" required>
+      <input class="sc-input" type="email" name="uemail" placeholder="Email Address" required autocomplete="email">
+      <div class="pw-box">
+        <input id="pw" class="sc-input" type="password" name="upassword"
+               placeholder="Password (min 8 characters)" pattern=".{8,}" required>
+        <button type="button" class="eye-btn" onclick="togglePw()">👁</button>
+      </div>
+
+      <!-- Strength bar -->
+      <div class="strength-bar" id="strBar" style="width:0;background:transparent;margin-top:-10px;margin-bottom:10px;"></div>
+      <div class="strength-label" id="strLabel" style="color:var(--text-sub);font-size:11px;margin-bottom:12px;">&nbsp;</div>
+
+      <button class="sc-btn" type="submit">🎓 Create My Account</button>
+    </form>
+
+    <div class="link-row">
+      Already have an account? <a href="/login">Login →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="sc-footer">
+  <div>🎓 <strong>Smart Campus</strong> · AI Platform</div>
+  <div>© 2025 Smart Campus. All rights reserved.</div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/design-system.js') }}"></script>
+<script>
+function togglePw() {
+  var pw = document.getElementById('pw');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+
+document.getElementById('pw').addEventListener('input', function() {
+  var v = this.value;
+  var bar = document.getElementById('strBar');
+  var lbl = document.getElementById('strLabel');
+  if (!v) { bar.className = 'strength-bar'; bar.style.width='0'; lbl.innerHTML='&nbsp;'; return; }
+
+  var strong = v.match(/[A-Z]/) && v.match(/[0-9]/) && v.match(/[^A-Za-z0-9]/) && v.length >= 8;
+  var medium = !strong && ((v.match(/[A-Z]/) || v.match(/[0-9]/)) && v.length >= 6);
+
+  if (strong) {
+    bar.className = 'strength-bar strength-strong';
+    lbl.innerHTML = '<span style="color:#34d399">✅ Strong password</span>';
+  } else if (medium) {
+    bar.className = 'strength-bar strength-medium';
+    lbl.innerHTML = '<span style="color:#fbbf24">🔶 Medium — add symbols or uppercase</span>';
+  } else {
+    bar.className = 'strength-bar strength-weak';
+    lbl.innerHTML = '<span style="color:#f87171">⚠️ Weak — at least 8 characters</span>';
+  }
+});
+</script>
+</body>
+</html>
