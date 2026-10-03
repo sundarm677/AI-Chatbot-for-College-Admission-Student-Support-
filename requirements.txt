@@ -18,9 +18,3 @@ nltk==3.8.1
 # spaCy — lemmatisation, NER (en_core_web_sm model needed)
 # After install run: python -m spacy download en_core_web_sm
 spacy==3.7.2
-
-# Google Translate — multilingual support
-googletrans==4.0.0rc1
-
-# (Optional) bcrypt — alternative password hashing
-# bcrypt==4.0.1
