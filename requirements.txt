@@ -10,7 +10,8 @@ flask-compress==1.14
 
 # NLP — scikit-learn TF-IDF + Naive-Bayes
 scikit-learn==1.3.0
-numpy==1.26.3
+numpy>=1.26.3
+scipy>=1.11.0
 
 # NLTK — stopwords, stemming, tokenisation
 nltk==3.8.1
